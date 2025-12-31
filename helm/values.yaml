@@ -1,0 +1,82 @@
+# Default values for aiagent
+replicaCount: 1
+
+image:
+  repository: docker.io/yourregistry/aiagent
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: aiagent.gillsonhome.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: aiagent-tls
+  #    hosts:
+  #      - aiagent.gillsonhome.com
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  mountPath: /data
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Application configuration
+config:
+  logLevel: "info"
+  appName: "AI Agent - ERP Config Validator"
+  corsOrigins: "https://aiagent.gillsonhome.com"
+
+# Secrets (set these via values override or manually)
+secrets:
+  openaiApiKey: ""
+  erpApiKey: ""
+  salesforceApiKey: ""
+
+# MCP Server endpoints
+mcpServers:
+  erpEndpoint: ""
+  salesforceEndpoint: ""

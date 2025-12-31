@@ -1,0 +1,26 @@
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# WebSocket support
+websockets==12.0
+
+# AI & Agent
+llama-index==0.10.68
+openai==1.10.0
+
+# Data validation
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Database
+sqlalchemy==2.0.25
+aiosqlite==0.19.0
+
+# MCP / Tools (will add specific MCP clients as needed)
+# httpx for API calls to MCP servers
+httpx==0.26.0
+
+# Logging and monitoring
+python-json-logger==2.0.7

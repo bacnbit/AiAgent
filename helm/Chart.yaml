@@ -1,0 +1,13 @@
+apiVersion: v2
+name: aiagent
+description: AI Agent for ERP Configuration Validation
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - ai
+  - agent
+  - erp
+  - validation
+maintainers:
+  - name: sgillson

@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aiagent.fullname" . }}
+  labels:
+    {{- include "aiagent.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "aiagent.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "aiagent.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        env:
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "aiagent.fullname" . }}-config
+              key: log_level
+        - name: APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "aiagent.fullname" . }}-config
+              key: app_name
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "aiagent.fullname" . }}-config
+              key: cors_origins
+        - name: DATABASE_URL
+          value: "sqlite+aiosqlite:///{{ .Values.persistence.mountPath }}/agent.db"
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "aiagent.fullname" . }}-secrets
+              key: openai_api_key
+              optional: true
+        - name: ERP_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "aiagent.fullname" . }}-secrets
+              key: erp_api_key
+              optional: true
+        - name: SALESFORCE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "aiagent.fullname" . }}-secrets
+              key: salesforce_api_key
+              optional: true
+        - name: ERP_MCP_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "aiagent.fullname" . }}-config
+              key: erp_mcp_endpoint
+              optional: true
+        - name: SALESFORCE_MCP_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "aiagent.fullname" . }}-config
+              key: salesforce_mcp_endpoint
+              optional: true
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        volumeMounts:
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          mountPath: {{ .Values.persistence.mountPath }}
+        {{- end }}
+      volumes:
+      {{- if .Values.persistence.enabled }}
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "aiagent.fullname" . }}-pvc
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

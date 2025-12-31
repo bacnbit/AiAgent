@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  aiagent:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "80:80"
+      - "8000:8000"  # Expose backend directly for debugging
+    environment:
+      - LOG_LEVEL=info
+      - DATABASE_URL=sqlite+aiosqlite:///./data/agent.db
+      - CORS_ORIGINS=["http://localhost:3000", "http://localhost:80"]
+      # Add your API keys here or use .env file
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - ERP_API_KEY=${ERP_API_KEY}
+      # - SALESFORCE_API_KEY=${SALESFORCE_API_KEY}
+    volumes:
+      # Mount data directory for SQLite persistence
+      - ./data:/data
+      # For development: mount source code for hot reload (optional)
+      # - ./backend:/app
+      # - ./frontend/dist:/app/frontend/dist
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  data:
+    driver: local

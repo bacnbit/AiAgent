@@ -1,0 +1,12 @@
+# Development environment overrides
+image:
+  tag: "dev"
+  pullPolicy: Always
+
+config:
+  logLevel: "verbose"
+  corsOrigins: "http://localhost:3000,https://aiagent.gillsonhome.com"
+
+ingress:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
